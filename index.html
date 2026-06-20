@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mimi's UI Studio</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>Mimi's UI Studio</h1>
+    <p class="subtitle">Browse design styles you love. Tweak them, then copy a ready-made prompt or the CSS code.</p>
+  </header>
+
+  <main>
+    <section id="grid" class="grid" aria-label="Theme gallery"></section>
+  </main>
+
+  <!-- Detail panel (hidden until a theme is clicked) -->
+  <div id="overlay" class="overlay" hidden>
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title">
+      <button id="close-btn" class="close-btn" aria-label="Close">&times;</button>
+
+      <h2 id="panel-title" class="panel-title"></h2>
+      <p id="panel-vibe" class="panel-vibe"></p>
+
+      <!-- Live preview -->
+      <div id="preview" class="preview"></div>
+
+      <!-- Customize controls -->
+      <div class="controls">
+        <div class="control">
+          <label>Accent color</label>
+          <div id="accent-swatches" class="swatches"></div>
+        </div>
+        <div class="control">
+          <label for="font-select">Font</label>
+          <select id="font-select"></select>
+        </div>
+        <div class="control">
+          <label>Corners</label>
+          <div class="toggle-row">
+            <button class="toggle" data-radius="rounded">Rounded</button>
+            <button class="toggle" data-radius="sharp">Sharp</button>
+          </div>
+        </div>
+        <div class="control">
+          <label>Mode</label>
+          <div class="toggle-row">
+            <button class="toggle" data-mode="light">Light</button>
+            <button class="toggle" data-mode="dark">Dark</button>
+          </div>
+        </div>
+        <div class="control control-wide">
+          <label for="notes">Extra notes (added to the prompt)</label>
+          <textarea id="notes" placeholder="e.g. make it feel cozy and rounded, add a subtle shadow..."></textarea>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="output">
+        <div class="output-head">
+          <h3>Prompt</h3>
+          <button id="copy-prompt" class="copy-btn">Copy prompt</button>
+        </div>
+        <pre id="prompt-out" class="code-box"></pre>
+      </div>
+
+      <div class="output">
+        <div class="output-head">
+          <h3>CSS code</h3>
+          <button id="copy-css" class="copy-btn">Copy code</button>
+        </div>
+        <pre id="css-out" class="code-box"></pre>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p>Made for Mimi · browse → customize → copy</p>
+  </footer>
+
+  <script src="themes.js"></script>
+  <script src="app.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js");
+    }
+  </script>
+</body>
+</html>
