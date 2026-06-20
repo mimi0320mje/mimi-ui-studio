@@ -36,6 +36,27 @@ body {
   color: var(--muted);
 }
 
+/* ---- Nav (Templates / Buttons) ---- */
+.nav {
+  display: inline-flex;
+  gap: 6px;
+  margin-top: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px;
+}
+.nav-link {
+  text-decoration: none;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 7px 20px;
+  border-radius: 999px;
+}
+.nav-link:hover { color: var(--text); }
+.nav-link.active { background: var(--text); color: var(--surface); }
+
 main { padding: 12px 24px 60px; }
 
 /* ---- Theme grid ---- */
@@ -61,9 +82,9 @@ main { padding: 12px 24px 60px; }
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
 }
 
-/* Mini fake-UI preview inside each card */
+/* Layout / button preview inside each card */
 .mini {
-  padding: 16px;
+  padding: 12px;
 }
 
 .mini-bar {
@@ -207,6 +228,47 @@ textarea { resize: vertical; min-height: 60px; }
   color: var(--text);
 }
 .toggle.selected { background: var(--text); color: var(--surface); border-color: var(--text); }
+
+/* ---- Save / Cancel row ---- */
+.save-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+.dirty-hint {
+  font-size: 0.82rem;
+  color: #c2620e;
+  min-height: 1em;
+}
+.save-actions { display: flex; gap: 8px; margin-left: auto; }
+.save-btn {
+  border: none;
+  background: var(--text);
+  color: var(--surface);
+  padding: 9px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+.ghost-btn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  padding: 9px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+}
+.save-btn:disabled, .ghost-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.save-btn:not(:disabled):hover { opacity: 0.9; }
+.ghost-btn:not(:disabled):hover { background: var(--bg); }
 
 /* ---- Outputs ---- */
 .output { margin-bottom: 18px; }

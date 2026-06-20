@@ -1,11 +1,11 @@
 # Mimi's UI Studio
 
-A personal design-style library. Browse color themes you like, tweak them, then
-copy a ready-made **prompt** (to paste to Claude Code) or the matching **CSS code**.
+A personal design-style library. Browse layouts and buttons you like, tweak them,
+then copy a ready-made **prompt** (to paste to Claude Code) or the matching **CSS code**.
 
 ## Running it
 
-Just open the page in a browser — no build step, no server:
+No build step, no server:
 
 ```
 open index.html
@@ -13,37 +13,39 @@ open index.html
 
 Or visit the live GitHub Pages URL.
 
+## Two pages
+
+- **Templates** (`index.html`) — 8 genuinely different page layouts: hero,
+  pricing card, profile card, login form, dashboard stats, product showcase,
+  testimonial, blog post. Each has its own palette.
+- **Buttons** (`buttons.html`) — 8 kinds of button: solid, outline, icon-only,
+  icon + label, image/avatar, on/off switch, true/false segmented, and a
+  floating action button.
+
+Switch between them with the **Templates / Buttons** nav pill.
+
 ## How it works
 
-- Each theme is a small data entry in [`themes.js`](themes.js) — name, colors,
-  font, vibe, corner roundness.
-- Click a theme to open the detail panel. Change the accent color, font, corner
-  style, or light/dark mode, and add free-text notes. The live preview, the
-  prompt, and the CSS all update instantly.
-- **Copy prompt** / **Copy code** put the text on your clipboard.
+1. Click any card to open the detail panel.
+2. Customize the **accent color, font, shape** (rounded / pill / sharp) and
+   **light/dark mode**, plus add free-text **notes**. The live preview updates
+   instantly.
+3. Press **Save** to update the **prompt** and **CSS** (with `#hex` colors) to
+   match your changes — or **Cancel** to revert.
+4. **Copy prompt** / **Copy code** put the text on your clipboard.
 
-## Adding a new theme
+## Adding more
 
-Append one object to the `THEMES` array in [`themes.js`](themes.js):
-
-```js
-{
-  id: "my-theme",
-  name: "My Theme",
-  vibe: "calm, modern",
-  colors: { bg, surface, text, muted, accent },
-  font: "'Inter', system-ui, sans-serif",
-  radius: "12px",
-}
-```
-
-Later you can add other categories (buttons, templates, fonts) by giving objects
-a `category` field and adding a filter.
+- A template = one object in [`templates.js`](templates.js) with a `layout` that
+  `renderLayout()` knows how to draw.
+- A button = one object in [`buttons.js`](buttons.js) with a `kind` that
+  `renderButton()` / `buttonCSS()` know how to draw.
 
 ## Files
 
-- `index.html` — page shell, theme grid, detail panel
+- `index.html` / `buttons.html` — the two pages (grid + nav)
 - `styles.css` — the studio's own UI styling
-- `themes.js` — the theme data (single source of truth)
-- `app.js` — rendering, customization, prompt/CSS generators, copy buttons
+- `studio.js` — shared detail-panel engine (controls, Save/Cancel, copy)
+- `templates.js` — template data, layout renderers, prompt/CSS builders
+- `buttons.js` — button data, button renderers, prompt/CSS builders
 - `sw.js` — network-first service worker (auto-updates, no manual cache-clearing)

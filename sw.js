@@ -1,8 +1,11 @@
 // Network-first service worker: always try the network so the site auto-updates
 // with no manual cache-clearing; fall back to cache only when offline.
 
-const CACHE = "mimi-ui-studio-v1";
-const ASSETS = ["./", "./index.html", "./styles.css", "./themes.js", "./app.js"];
+const CACHE = "mimi-ui-studio-v2";
+const ASSETS = [
+  "./", "./index.html", "./buttons.html", "./styles.css",
+  "./studio.js", "./templates.js", "./buttons.js",
+];
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
