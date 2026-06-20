@@ -23,10 +23,27 @@ const Studio = (() => {
     "#121212", "#3f7d56", "#1c91c2", "#7b3f9e",
   ];
 
-  const DARK = { bg: "#15171c", surface: "#20232b", text: "#f2f3f7", muted: "#8b90a0" };
-
   const SHARP = "4px";
   const PILL = "999px";
+
+  /* ---- color helpers: derive a cohesive palette from the accent ---- */
+  const toRgb = (hex) => {
+    const h = hex.replace("#", "");
+    return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) };
+  };
+  const toHex = ({ r, g, b }) => {
+    const ch = (n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0");
+    return "#" + ch(r) + ch(g) + ch(b);
+  };
+  // Blend hex `a` toward hex `b` by amount `t` (0..1).
+  const mix = (a, b, t) => {
+    const A = toRgb(a), B = toRgb(b);
+    return toHex({ r: A.r + (B.r - A.r) * t, g: A.g + (B.g - A.g) * t, b: A.b + (B.b - A.b) * t });
+  };
+  const isDark = (hex) => {
+    const { r, g, b } = toRgb(hex);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.4;
+  };
 
   let item, builders, shapeOptions;
   let committed, draft; // state objects: { accent, font, shapeKey, mode, notes }
@@ -92,10 +109,34 @@ const Studio = (() => {
   }
 
   /* ---- Color + shape resolution ---- */
+  // The whole background theme follows the accent. If the accent is unchanged and
+  // we're in the template's natural mode, use its hand-picked palette. Otherwise
+  // derive a harmonious bg/surface/text/muted from the chosen accent, keeping the
+  // light-or-dark character of the current mode.
   function effColors(state) {
-    if (state.mode === "dark") return { ...DARK, accent: state.accent };
-    const c = item.colors;
-    return { bg: c.bg, surface: c.surface, text: c.text, muted: c.muted, accent: state.accent };
+    const accent = state.accent;
+    const base = item.colors;
+    const naturalMode = isDark(base.bg) ? "dark" : "light";
+
+    if (accent === base.accent && state.mode === naturalMode) {
+      return { bg: base.bg, surface: base.surface, text: base.text, muted: base.muted, accent };
+    }
+    if (state.mode === "dark") {
+      return {
+        bg: mix(accent, "#0f1117", 0.88),
+        surface: mix(accent, "#1b1e27", 0.85),
+        text: "#f2f3f7",
+        muted: mix(accent, "#8b90a0", 0.4),
+        accent,
+      };
+    }
+    return {
+      bg: mix(accent, "#ffffff", 0.9),
+      surface: "#ffffff",
+      text: mix(accent, "#1a1a1a", 0.8),
+      muted: mix(accent, "#9a9a9a", 0.55),
+      accent,
+    };
   }
 
   function radiusFor(shapeKey) {
@@ -129,7 +170,7 @@ const Studio = (() => {
       accent: item.colors.accent,
       font: item.font,
       shapeKey: "rounded",
-      mode: "light",
+      mode: isDark(item.colors.bg) ? "dark" : "light",
       notes: "",
     };
     committed = clone(init);
