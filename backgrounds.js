@@ -350,6 +350,7 @@ ${scriptBody}
 const BACKGROUND_BUILDERS = {
   hide: ["font", "shape"],
   codeLabel: "Code (HTML + CSS + JS)",
+  accentLabel: "Effect color",
   extraControls: [
     { key: "speed", label: "Speed", min: 0.3, max: 2, step: 0.1, default: 1 },
     { key: "density", label: "Amount", min: 10, max: 90, step: 2, default: 42 },

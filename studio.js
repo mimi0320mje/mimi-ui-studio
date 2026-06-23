@@ -65,7 +65,7 @@ const Studio = (() => {
           <div id="preview" class="preview"></div>
           <div class="controls">
             <div class="control" data-control="accent">
-              <label>Accent color</label>
+              <label id="accent-label">Accent color</label>
               <div id="accent-swatches" class="swatches"></div>
             </div>
             <div class="control" data-control="font">
@@ -186,6 +186,7 @@ const Studio = (() => {
     $("panel-title").textContent = item.name;
     $("panel-vibe").textContent = item.vibe;
     $("code-label").textContent = theBuilders.codeLabel || "CSS code";
+    $("accent-label").textContent = theBuilders.accentLabel || "Accent color";
 
     $("accent-swatches").innerHTML = ACCENT_OPTIONS.map(
       (col) => `<span class="swatch" data-accent="${col}" style="background:${col};"></span>`
