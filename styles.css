@@ -202,6 +202,7 @@ main { padding: 12px 24px 60px; }
   margin-bottom: 22px;
 }
 .control { display: flex; flex-direction: column; gap: 8px; }
+.control[hidden] { display: none; } /* let the `hidden` attribute win over display:flex */
 .control-wide { grid-column: 1 / -1; }
 .control label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
 
