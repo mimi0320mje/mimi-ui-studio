@@ -45,8 +45,9 @@ const Studio = (() => {
     return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.4;
   };
 
-  let item, builders, shapeOptions;
-  let committed, draft; // state objects: { accent, font, shapeKey, mode, notes }
+  let item, builders, shapeOptions, extraControls;
+  let committed, draft; // state objects: { accent, font, shapeKey, mode, notes, ...extras }
+  let previewCleanup = null; // teardown for an animated preview (or null)
 
   const $ = (id) => document.getElementById(id);
   const clone = (o) => JSON.parse(JSON.stringify(o));
@@ -63,26 +64,27 @@ const Studio = (() => {
           <p id="panel-vibe" class="panel-vibe"></p>
           <div id="preview" class="preview"></div>
           <div class="controls">
-            <div class="control">
+            <div class="control" data-control="accent">
               <label>Accent color</label>
               <div id="accent-swatches" class="swatches"></div>
             </div>
-            <div class="control">
+            <div class="control" data-control="font">
               <label for="font-select">Font</label>
               <select id="font-select"></select>
             </div>
-            <div class="control">
+            <div class="control" data-control="shape">
               <label>Shape</label>
               <div id="shape-row" class="toggle-row"></div>
             </div>
-            <div class="control">
+            <div class="control" data-control="mode">
               <label>Mode</label>
               <div class="toggle-row">
                 <button class="toggle" data-mode="light">Light</button>
                 <button class="toggle" data-mode="dark">Dark</button>
               </div>
             </div>
-            <div class="control control-wide">
+            <div id="extra-controls" class="control control-wide"></div>
+            <div class="control control-wide" data-control="notes">
               <label for="notes">Extra notes (added to the prompt)</label>
               <textarea id="notes" placeholder="e.g. make it feel cozy, add a soft shadow..."></textarea>
             </div>
@@ -99,7 +101,7 @@ const Studio = (() => {
             <pre id="prompt-out" class="code-box"></pre>
           </div>
           <div class="output">
-            <div class="output-head"><h3>CSS code</h3><button id="copy-css" class="copy-btn">Copy code</button></div>
+            <div class="output-head"><h3 id="code-label">CSS code</h3><button id="copy-css" class="copy-btn">Copy code</button></div>
             <pre id="css-out" class="code-box"></pre>
           </div>
         </div>
@@ -145,15 +147,18 @@ const Studio = (() => {
     return item.radius;
   }
 
-  // The resolved style object passed to a page's builder functions.
+  // The resolved style object passed to a page's builder functions. Any extra
+  // control values (e.g. speed, density) are merged in by key.
   function resolve(state) {
-    return {
+    const out = {
       c: effColors(state),
       font: state.font,
       shapeKey: state.shapeKey,
       radius: radiusFor(state.shapeKey),
       mode: state.mode,
     };
+    extraControls.forEach((ec) => (out[ec.key] = state[ec.key]));
+    return out;
   }
 
   /* ---- Open a theme / button in the panel ---- */
@@ -165,6 +170,7 @@ const Studio = (() => {
       { key: "rounded", label: "Rounded" },
       { key: "sharp", label: "Sharp" },
     ];
+    extraControls = theBuilders.extraControls || [];
 
     const init = {
       accent: item.colors.accent,
@@ -173,11 +179,13 @@ const Studio = (() => {
       mode: isDark(item.colors.bg) ? "dark" : "light",
       notes: "",
     };
+    extraControls.forEach((ec) => (init[ec.key] = ec.default));
     committed = clone(init);
     draft = clone(init);
 
     $("panel-title").textContent = item.name;
     $("panel-vibe").textContent = item.vibe;
+    $("code-label").textContent = theBuilders.codeLabel || "CSS code";
 
     $("accent-swatches").innerHTML = ACCENT_OPTIONS.map(
       (col) => `<span class="swatch" data-accent="${col}" style="background:${col};"></span>`
@@ -191,17 +199,46 @@ const Studio = (() => {
       .map((s) => `<button class="toggle" data-shape="${s.key}">${s.label}</button>`)
       .join("");
 
+    // Show/hide controls per the page's `hide` list.
+    const hide = theBuilders.hide || [];
+    document.querySelectorAll(".control[data-control]").forEach((el) => {
+      el.hidden = hide.includes(el.dataset.control);
+    });
+
+    // Build any extra slider controls (e.g. Speed, Amount).
+    $("extra-controls").innerHTML = extraControls
+      .map(
+        (ec) => `<label class="range-label" for="range-${ec.key}">${ec.label}</label>
+          <input class="range" type="range" id="range-${ec.key}"
+            min="${ec.min}" max="${ec.max}" step="${ec.step}" data-key="${ec.key}">`
+      )
+      .join("");
+    $("extra-controls").hidden = extraControls.length === 0;
+
     $("notes").value = "";
 
+    // Show the panel BEFORE mounting the preview so an animated <canvas> can
+    // measure its real size (a hidden container measures 0).
+    $("overlay").hidden = false;
     syncControls();
     renderPreview();
     renderOutputs();
     setDirty(false);
-    $("overlay").hidden = false;
   }
 
+  // Animated previews opt in via builders.mountPreview (returns a cleanup fn);
+  // everything else just sets innerHTML.
   function renderPreview() {
-    $("preview").innerHTML = builders.renderPreview(item, resolve(draft));
+    if (previewCleanup) { previewCleanup(); previewCleanup = null; }
+    const container = $("preview");
+    if (builders.mountPreview) {
+      container.classList.add("preview-anim");
+      container.innerHTML = "";
+      previewCleanup = builders.mountPreview(container, item, resolve(draft)) || null;
+    } else {
+      container.classList.remove("preview-anim");
+      container.innerHTML = builders.renderPreview(item, resolve(draft));
+    }
   }
 
   // Prompt + CSS always reflect the COMMITTED state (changes on Save).
@@ -234,7 +271,16 @@ const Studio = (() => {
     document.querySelectorAll(".toggle[data-mode]").forEach((t) =>
       t.classList.toggle("selected", t.dataset.mode === draft.mode)
     );
+    extraControls.forEach((ec) => {
+      const el = $("range-" + ec.key);
+      if (el) el.value = draft[ec.key];
+    });
     $("notes").value = draft.notes;
+  }
+
+  function closePanel() {
+    if (previewCleanup) { previewCleanup(); previewCleanup = null; }
+    $("overlay").hidden = true;
   }
 
   function onChange() {
@@ -245,9 +291,16 @@ const Studio = (() => {
 
   /* ---- Events ---- */
   function wireEvents() {
-    $("close-btn").addEventListener("click", () => ($("overlay").hidden = true));
+    $("close-btn").addEventListener("click", closePanel);
     $("overlay").addEventListener("click", (e) => {
-      if (e.target.id === "overlay") $("overlay").hidden = true;
+      if (e.target.id === "overlay") closePanel();
+    });
+
+    $("extra-controls").addEventListener("input", (e) => {
+      const el = e.target.closest("input[data-key]");
+      if (!el) return;
+      draft[el.dataset.key] = parseFloat(el.value);
+      onChange();
     });
 
     $("accent-swatches").addEventListener("click", (e) => {
@@ -298,7 +351,7 @@ const Studio = (() => {
     $("copy-css").addEventListener("click", (e) => copyFrom("css-out", e.target));
 
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") $("overlay").hidden = true;
+      if (e.key === "Escape" && !$("overlay").hidden) closePanel();
     });
   }
 

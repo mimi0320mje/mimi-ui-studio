@@ -175,6 +175,12 @@ main { padding: 12px 24px 60px; }
   margin-bottom: 22px;
   border: 1px solid var(--line);
 }
+/* Animated (background) previews: full-bleed, fixed height for the canvas */
+.preview.preview-anim {
+  padding: 0;
+  height: 240px;
+  overflow: hidden;
+}
 
 .preview-bar { height: 14px; width: 50%; border-radius: 99px; margin-bottom: 16px; }
 .preview-card { padding: 18px; margin-bottom: 16px; }
@@ -228,6 +234,29 @@ textarea { resize: vertical; min-height: 60px; }
   color: var(--text);
 }
 .toggle.selected { background: var(--text); color: var(--surface); border-color: var(--text); }
+
+/* ---- Extra slider controls (Backgrounds: Speed / Amount) ---- */
+#extra-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  align-items: center;
+}
+.range-label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+.range {
+  width: 100%;
+  accent-color: var(--text);
+}
+
+/* ---- Background cards: full-bleed animated preview ---- */
+.bg-mini {
+  padding: 0;
+  height: 150px;
+  overflow: hidden;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+.bg-mini canvas, .bg-mini > div { border-radius: 0; }
 
 /* ---- Save / Cancel row ---- */
 .save-row {
